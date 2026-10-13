@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friday Football Club - App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Hind Siliguri', sans-serif; 
+            background-color: #030712; 
+            color: #f9fafb; 
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-slate-955 text-slate-100 min-h-screen pb-24 select-none">
+
+    <!-- App Top Navigation Bar -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 shadow-2xl">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 text-slate-950 p-2.5 rounded-2xl font-black text-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-futbol animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-white tracking-wide leading-tight">Friday Football Club</h1>
+                    <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Official Match App
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Admin Toggle Button -->
+            <button id="adminBtn" onclick="toggleAdminModal()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/70 text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 transition active:scale-95 shadow-md">
+                <i class="fa-solid fa-lock text-emerald-400" id="adminIcon"></i>
+                <span id="adminText" class="font-semibold">অ্যাডমিন মোড</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- PIN Entry Modal (Dialog Box) -->
+    <div id="adminModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i> অ্যাডমিন সিকিউরিটি
+                </h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-400">শুধুমাত্র অ্যাডমিন নতুন প্লেয়ার, স্ট্যাটস এবং ম্যাচ আপডেট করতে পারবে। PIN দিন:</p>
+            
+            <div class="space-y-2">
+                <input type="password" id="adminPassInput" placeholder="PIN দিন (যেমন: 1234)" class="w-full bg-slate-950 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 text-center tracking-widest font-bold placeholder:tracking-normal placeholder:font-normal shadow-inner">
+                <p id="errorMsg" class="text-xs text-rose-500 text-center hidden font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> ভুল PIN! আবার চেষ্টা করুন।</p>
+            </div>
+
+            <div class="flex gap-2.5 pt-2">
+                <button onclick="closeAdminModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold transition">বাতিল</button>
+                <button onclick="submitAdminPass()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">আনলক করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Active Admin Session Indicator Banner -->
+        <div id="adminBanner" class="hidden bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 flex justify-between items-center text-xs md:text-sm text-emerald-300 shadow-xl backdrop-blur">
+            <span class="flex items-center gap-2 font-medium">
+                <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i> 
+                অ্যাডমিন মোড অন রয়েছে! আপনি স্ট্যাটস কাস্টমাইজ করতে পারবেন।
+            </span>
+            <button onclick="logoutAdmin()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 px-3 py-1.5 rounded-xl font-bold transition">লগআউট</button>
+        </div>
+
+        <!-- Interactive Tab Switches -->
+        <div class="flex p-1.5 bg-slate-900 border border-slate-800 rounded-2xl gap-1 text-xs md:text-sm font-semibold">
+            <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="flex-1 py-2.5 rounded-xl text-slate-400 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trophy"></i> লিডারবোর্ড
+            </button>
+            <button onclick="switchTab('players')" id="tab-players" class="flex-1 py-2.5 rounded-xl text-slate-400 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-users"></i> স্কোয়াড ও বায়ো
+            </button>
+            <button onclick="switchTab('matches')" id="tab-matches" class="flex-1 py-2.5 rounded-xl text-slate-400 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calendar-days"></i> ম্যাচ গ্যালারি
+            </button>
+        </div>
+
+        <!-- TAB 1: LEADERBOARD -->
+        <div id="view-leaderboard" class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-ranking-star text-amber-400"></i> টপ স্কোরার ও গোল্ডেন বুট
+                        </h2>
+                        <p class="text-xs text-slate-400">সবচেয়ে বেশি গোল ও অ্যাসিস্ট করা ফুটবলারদের তালিকা</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-800/80">
+                    <table class="w-full text-left text-xs md:text-sm text-slate-300">
+                        <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] md:text-xs font-bold border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">র‍্যাংক</th>
+                                <th class="py-3 px-4">প্লেয়ার</th>
+                                <th class="py-3 px-4 text-center">পজিশন</th>
+                                <th class="py-3 px-4 text-center">গোল ⚽</th>
+                                <th class="py-3 px-4 text-center">অ্যাসিস্ট 👟</th>
+                                <th class="py-3 px-4 text-center edit-col hidden">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/60 bg-slate-900/40"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PLAYER PROFILES -->
+        <div id="view-players" class="space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-2xl space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-id-card text-emerald-400"></i> প্লেয়ার প্রোফাইল ও বায়ো
+                        </h2>
+                        <p class="text-xs text-slate-400">টিমের সকল প্লেয়ারদের ডাটাবেজ</p>
+                    </div>
+                </div>
+
+                <!-- Add New Player Panel (Admin Only) -->
+                <div id="addPlayerCard" class="hidden bg-slate-950/80 border border-emerald-500/30 p-4 md:p-5 rounded-2xl space-y-4 shadow-xl">
+                    <h3 class="text-xs md:text-sm font-bold text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> নতুন প্লেয়ার ফাইল তৈরি করুন
+                    </h3>
+                    <form id="playerForm" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">প্লেয়ারের নাম</label>
+                            <input type="text" id="pName" placeholder="যেমন: Sakib Hasan" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">পজিশন</label>
+                            <select id="pPos" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                                <option value="Forward / ST">Forward / ST</option>
+                                <option value="Winger">Winger</option>
+                                <option value="Midfielder">Midfielder</option>
+                                <option value="Defender">Defender</option>
+                                <option value="Goalkeeper">Goalkeeper</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">প্রোফাইল ছবি (Upload)</label>
+                            <input type="file" id="pPhoto" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400">
+                        </div>
+                        <button type="submit" class="md:col-span-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">
+                            প্লেয়ার সেভ করুন
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Players Roster Grid -->
+                <div id="playersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MATCH GALLERY -->
+        <div id="view-matches" class="space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-2xl space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-amber-400"></i> শুক্রবারের ম্যাচ রেজাল্ট ও ছবি
+                        </h2>
+                        <p class="text-xs text-slate-400">প্রতি সপ্তাহের গেম নাইট হিস্টোরি</p>
+                    </div>
+                </div>
+
+                <!-- Add New Match Result Form (Admin Only) -->
+                <div id="addMatchCard" class="hidden bg-slate-950/80 border border-amber-500/30 p-4 md:p-5 rounded-2xl space-y-4 shadow-xl">
+                    <h3 class="text-xs md:text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle"></i> নতুন ম্যাচের রেজাল্ট ও ফটো পোস্ট করুন
+                    </h3>
+                    <form id="matchForm" class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">তারিখ</label>
+                                <input type="date" id="mDate" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">বিজয়ী দল</label>
+                                <input type="text" id="mWinner" placeholder="যেমন: Team Green" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">ফাইনাল স্কোর</label>
+                                <input type="text" id="mScore" placeholder="যেমন: 4 - 2" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">ম্যাচের ফটো/মুহূর্ত (Upload)</label>
+                                <input type="file" id="mPhoto" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
+                            ম্যাচ রেজাল্ট পোস্ট করুন
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Matches List Container -->
+                <div id="matchesList" class="space-y-4"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // State Management
+        let isAdmin = false;
+        let activeTab = 'leaderboard';
+
+        // Initial Sample Data (if LocalStorage is clean)
+        const defaultPlayers = [
+            { id: 101, name: "Sakib Hasan", pos: "Forward / ST", goals: 14, assists: 6, photo: "https://ui-avatars.com/api/?background=0D9488&color=fff&name=Sakib+Hasan" },
+            { id: 102, name: "Rifat Ahmed", pos: "Midfielder", goals: 9, assists: 11, photo: "https://ui-avatars.com/api/?background=0284C7&color=fff&name=Rifat+Ahmed" },
+            { id: 103, name: "Tanvir Hossain", pos: "Defender", goals: 3, assists: 4, photo: "https://ui-avatars.com/api/?background=6366F1&color=fff&name=Tanvir+Hossain" }
+        ];
+
+        const defaultMatches = [
+            { id: 201, date: "2026-10-09", winner: "Team Green", score: "5 - 3", photo: null }
+        ];
+
+        // Load persisted data
+        let players = JSON.parse(localStorage.getItem('ffc_app_players_v5')) || defaultPlayers;
+        let matches = JSON.parse(localStorage.getItem('ffc_app_matches_v5')) || defaultMatches;
+
+        // UI Initialization on Load
+        window.onload = function() {
+            switchTab('leaderboard');
+            renderAll();
+        };
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            activeTab = tabName;
+            ['leaderboard', 'players', 'matches'].forEach(t => {
+                const tabBtn = document.getElementById(`tab-${t}`);
+                const viewDiv = document.getElementById(`view-${t}`);
+                if(t === tabName) {
+                    tabBtn.className = "flex-1 py-2.5 rounded-xl text-emerald-400 bg-slate-950 font-bold border border-slate-800 shadow-lg flex items-center justify-center gap-2";
+                    viewDiv.classList.remove('hidden');
+                } else {
+                    tabBtn.className = "flex-1 py-2.5 rounded-xl text-slate-400 transition hover:text-slate-200 flex items-center justify-center gap-2";
+                    viewDiv.classList.add('hidden');
+                }
+            });
+        }
+
+        // Admin Security Controls
+        function toggleAdminModal() {
+            if(isAdmin) {
+                logoutAdmin();
+                return;
+            }
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('errorMsg').classList.add('hidden');
+            document.getElementById('adminPassInput').value = '';
+            document.getElementById('adminPassInput').focus();
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        function submitAdminPass() {
+            const pass = document.getElementById('adminPassInput').value.trim();
+            if (pass === "1234") {
+                isAdmin = true;
+                closeAdminModal();
+                updateAdminUI();
+            } else {
+                document.getElementById('errorMsg').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminUI();
+        }
+
+        function updateAdminUI() {
+            const banner = document.getElementById('adminBanner');
+            const pCard = document.getElementById('addPlayerCard');
+            const mCard = document.getElementById('addMatchCard');
+            const adminText = document.getElementById('adminText');
+            const adminIcon = document.getElementById('adminIcon');
+            const editCols = document.querySelectorAll('.edit-col');
+
+            if (isAdmin) {
+                banner.classList.remove('hidden');
+                pCard.classList.remove('hidden');
+                mCard.classList.remove('hidden');
+                adminText.innerText = "অ্যাডমিন (Active)";
+                adminIcon.className = "fa-solid fa-unlock text-emerald-400";
+                editCols.forEach(col => col.classList.remove('hidden'));
+            } else {
+                banner.classList.add('hidden');
+                pCard.classList.add('hidden');
+                mCard.classList.add('hidden');
+                adminText.innerText = "অ্যাডমিন মোড";
+                adminIcon.className = "fa-solid fa-lock text-emerald-400";
+                editCols.forEach(col => col.classList.add('hidden'));
+            }
+            renderAll();
+        }
+
+        // Render Functions
+        function renderAll() {
+            renderLeaderboard();
+            renderPlayers();
+            renderMatches();
+        }
+
+        function renderLeaderboard() {
+            const body = document.getElementById('leaderboardBody');
+            body.innerHTML = '';
+
+            let sorted = [...players].sort((a, b) => b.goals - a.goals || b.assists - a.assists);
+
+            if (sorted.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">কোনো তথ্য পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            sorted.forEach((p, idx) => {
+                let badge = `<span class="font-bold text-slate-400">#${idx + 1}</span>`;
+                if(idx === 0) badge = `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold px-2 py-0.5 rounded-lg">👑 1st</span>`;
+                if(idx === 1) badge = `<span class="bg-slate-300/20 text-slate-300 border border-slate-300/30 font-bold px-2 py-0.5 rounded-lg">🥈 2nd</span>`;
+                if(idx === 2) badge = `<span class="bg-amber-700/20 text-amber-600 border border-amber-700/30 font-bold px-2 py-0.5 rounded-lg">🥉 3rd</span>`;
+
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-950/60 transition">
+                        <td class="py-3 px-4">${badge}</td>
+                        <td class="py-3 px-4 font-semibold text-white flex items-center gap-2.5">
+                            <img src="${p.photo}" class="w-8 h-8 rounded-full object-cover border border-slate-700">
+                            <span>${p.name}</span>
+                        </td>
+                        <td class="py-3 px-4 text-center text-xs text-slate-400">${p.pos}</td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-400 text-sm">${p.goals}</td>
+                        <td class="py-3 px-4 text-center font-bold text-amber-400 text-sm">${p.assists}</td>
+                        <td class="py-3 px-4 text-center ${isAdmin ? '' : 'hidden'} edit-col">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="adjustStat(${p.id}, 'goals', 1)" class="bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 px-2 py-1 rounded text-xs">+G</button>
+                                <button onclick="adjustStat(${p.id}, 'goals', -1)" class="bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 px-2 py-1 rounded text-xs">-G</button>
+                                <button onclick="adjustStat(${p.id}, 'assists', 1)" class="bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 px-2 py-1 rounded text-xs">+A</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderPlayers() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            if (players.length === 0) {
+                grid.innerHTML = `<p class="text-slate-500 text-xs col-span-full text-center py-8">কোনো প্লেয়ার তালিকাভুক্ত নেই।</p>`;
+                return;
+            }
+
+            players.forEach((p) => {
+                grid.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between shadow-lg relative group">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.photo}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500/80 shadow-md">
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${p.name}</h4>
+                                <span class="text-[10px] bg-slate-900 text-emerald-400 px-2 py-0.5 rounded-md border border-slate-800">${p.pos}</span>
+                            </div>
+                        </div>
+                        ${isAdmin ? `
+                            <button onclick="deletePlayer(${p.id})" class="text-slate-500 hover:text-rose-500 p-2 text-xs transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function renderMatches() {
+            const list = document.getElementById('matchesList');
+            list.innerHTML = '';
+
+            if (matches.length === 0) {
+                list.innerHTML = `<p class="text-slate-500 text-xs text-center py-8">এখনো ম্যাচের রেকর্ড আপলোড করা হয়নি।</p>`;
+                return;
+            }
+
+            matches.forEach((m) => {
+                list.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+                        <div class="space-y-1.5 text-center md:text-left">
+                            <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1 text-emerald-400"></i>${m.date}</span>
+                            <h3 class="text-base font-bold text-amber-400">🏆 বিজয়ী: ${m.winner}</h3>
+                            <p class="text-xs font-bold text-slate-200">ফাইনাল স্কোর: <span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded-md text-emerald-400">${m.score}</span></p>
+                        </div>
+                        ${m.photo ? `<img src="${m.photo}" class="w-full md:w-40 h-28 rounded-xl object-cover border border-slate-800 shadow-md">` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        // Adjust Player Goal / Assist
+        function adjustStat(id, type, val) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player[type] = Math.max(0, player[type] + val);
+                saveAndRefresh();
+            }
+        }
+
+        // Delete Player
+        function deletePlayer(id) {
+            if(confirm("আপনি কি নিশ্চিত যে এই প্লেয়ারটিকে ফাইল থেকে ডিলিট করতে চান?")) {
+                players = players.filter(p => p.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        // Save Player Event
+        document.getElementById('playerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('pName').value.trim();
+            const pos = document.getElementById('pPos').value;
+            const fileInput = document.getElementById('pPhoto');
+
+            let photoUrl = 'https://ui-avatars.com/api/?background=0D9488&color=fff&name=' + encodeURIComponent(name);
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    savePlayerObj(name, pos, e.target.result);
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                savePlayerObj(name, pos, photoUrl);
+            }
+        });
+
+        function savePlayerObj(name, pos, photo) {
+            players.push({ id: Date.now(), name, pos, goals: 0, assists: 0, photo });
+            document.getElementById('playerForm').reset();
+            saveAndRefresh();
+        }
+
+        // Save Match Event
+        document.getElementById('matchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('mDate').value;
+            const winner = document.getElementById('mWinner').value.trim();
+            const score = document.getElementById('mScore').value.trim();
+            const fileInput = document.getElementById('mPhoto');
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveMatchObj(date, winner, score, e.target.result);
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveMatchObj(date, winner, score, null);
+            }
+        });
+
+        function saveMatchObj(date, winner, score, photo) {
+            matches.unshift({ id: Date.now(), date, winner, score, photo });
+            document.getElementById('matchForm').reset();
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('ffc_app_players_v5', JSON.stringify(players));
+            localStorage.setItem('ffc_app_matches_v5', JSON.stringify(matches));
+            renderAll();
+        }
+    </script>
+</body>
+</html>
